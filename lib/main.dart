@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import './model/todoModel.dart';
+import './views/viewTodo.dart';
 
 void main() {
   runApp(const TodoApp());
@@ -43,6 +45,12 @@ class _TodoListState extends State<TodoList> {
     });
   }
 
+  void _deleteTodo(Todo todo) {
+    setState(() {
+      _todos.removeWhere((element) => element.id == todo.id);
+    });
+  }
+
   Future<void> _displayDialog() async {
     return showDialog<void>(
         context: context,
@@ -84,69 +92,27 @@ class _TodoListState extends State<TodoList> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        children: _todos.map((Todo todo) {
-          return TodoItem(
-            todo: todo,
-            onTodoChanged: _handleTodoChange,
-          );
-        }).toList(),
-      ),
+      body: _todos.isEmpty
+          ? Center(
+              child: Text(
+                "Aucune tâche existante",
+              ),
+            )
+          : ListView(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              children: _todos.map((Todo todo) {
+                return TodoItem(
+                  todo: todo,
+                  onTodoChanged: _handleTodoChange,
+                  removeTodo: _deleteTodo,
+                );
+              }).toList(),
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _displayDialog(),
         tooltip: 'add task',
         child: const Icon(Icons.add),
       ),
     );
-  }
-}
-
-//Models
-class Todo {
-  Todo({required this.name, required this.completed});
-  String name;
-  bool completed;
-}
-
-//View
-class TodoItem extends StatelessWidget {
-  TodoItem({required this.todo, required this.onTodoChanged})
-      : super(key: ObjectKey(todo));
-
-  final void Function(Todo todo) onTodoChanged;
-  final Todo todo;
-
-  TextStyle? _getTextStyle(bool checked) {
-    if (!checked) return null;
-    return const TextStyle(
-      color: Colors.black54,
-      decoration: TextDecoration.lineThrough,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-        onTap: () {
-          onTodoChanged(todo);
-        },
-        leading: Checkbox(
-          checkColor: Colors.greenAccent,
-          activeColor: Colors.red,
-          value: todo.completed,
-          onChanged: (value) => onTodoChanged(todo),
-        ),
-        title: Row(
-          children: <Widget>[
-            Expanded(
-                child: Text(todo.name, style: _getTextStyle(todo.completed))),
-            IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.delete, color: Colors.red),
-                iconSize: 30,
-                alignment: Alignment.centerRight)
-          ],
-        ));
   }
 }
